@@ -1,6 +1,3 @@
 import "../css/style.css";
-
-let a = 10;
-let b = 10;
-
-console.log(a + b);
+import { Keyboard } from "./keyboard";
+new Keyboard(); // 인스턴스 생성
