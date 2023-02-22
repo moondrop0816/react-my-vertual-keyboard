@@ -6,6 +6,8 @@ export class Keyboard {
   #keyboardEl;
   #inputGropuEl;
   #inputEl;
+  #keyPress = false; // 키보드가 눌리고 있는지
+  #mouseDown = false; // 마우스가 눌리고 있는지
 
   constructor() {
     this.#assignElement();
@@ -28,6 +30,36 @@ export class Keyboard {
     document.addEventListener("keydown", this.#onKeyDown.bind(this));
     document.addEventListener("keyup", this.#onKeyUp.bind(this));
     this.#inputEl.addEventListener("input", this.#onInput.bind(this));
+    this.#keyboardEl.addEventListener(
+      "mousedown",
+      this.#onMouseDown.bind(this)
+    );
+    document.addEventListener("mouseup", this.#onMouseUp.bind(this));
+  }
+
+  #onMouseDown(event) {
+    if (this.#keyPress) return;
+    this.#mouseDown = true;
+    event.target.closest("div.key")?.classList.add("active");
+  }
+
+  #onMouseUp(event) {
+    if (this.#keyPress) return;
+    this.#mouseDown = false;
+    const keyEl = event.target.closest("div.key");
+    const isActive = !!keyEl?.classList.contains("active");
+    // 없다면 undefined 출력. !! boolean 값으로 확실하게 타입 캐스팅을 시킨다는 내용
+    const val = keyEl?.dataset.val; // data 속성의 값 가져옴.
+    if (isActive && !!val && val !== "Space" && val !== "Backspace") {
+      this.#inputEl.value += val;
+    }
+    if (isActive && val === "Space") {
+      this.#inputEl.value += " ";
+    }
+    if (isActive && val === "Backspace") {
+      this.#inputEl.value = this.#inputEl.value.slice(0, -1);
+    }
+    this.#keyboardEl.querySelector(".active")?.classList.remove("active");
   }
 
   #onInput() {
@@ -38,6 +70,8 @@ export class Keyboard {
   }
 
   #onKeyDown(event) {
+    if (this.#mouseDown) return;
+    this.#keyPress = true;
     this.#inputGropuEl.classList.toggle(
       "error",
       /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(event.key)
@@ -49,6 +83,8 @@ export class Keyboard {
   }
 
   #onKeyUp(event) {
+    if (this.#mouseDown) return;
+    this.#keyPress = false;
     this.#keyboardEl
       .querySelector(`[data-code=${event.code}]`)
       ?.classList.remove("active");
